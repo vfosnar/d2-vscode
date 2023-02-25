@@ -1,0 +1,21 @@
+name: Merge updates
+on:
+  schedule:
+    - cron:  '0 0 * * *'
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Merge updates
+        run: |
+          git config --global user.name 'Update Bot'
+          git config --global user.email 'bot@nowhere.invalid'
+
+          git checkout publish-ovsx
+          git pull --unshallow
+
+          git remote add upstream https://github.com/terrastruct/d2-vscode.git
+          git fetch upstream
+          git merge --no-edit upstream/master
+          git push origin publish-ovsx
