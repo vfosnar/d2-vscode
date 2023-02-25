@@ -1,0 +1,18 @@
+name: Open VSX Package
+
+on: [push, pull_request]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: yarn install
+      - run: yarn global add ovsx
+      - shell: bash
+        env:
+          OVSX_TOKEN: ${{ secrets.OVSX_TOKEN }}
+        run: ovsx publish -p "$OVSX_TOKEN"
