@@ -3,6 +3,7 @@ import * as os from "os";
 import { existsSync } from "fs";
 import { outputChannel, ws } from "./extension";
 import { window } from "vscode";
+import { spawnSync } from "child_process";
 
 /**
  * Utility - Set of common utility functions
@@ -26,6 +27,53 @@ class Utility {
 
   private static strBreak =
     "************************************************************";
+
+  /**
+   * Checks to see if 'xdg-open' is on the path
+   */
+  isXdgOpenAvailable(): boolean {
+    if (this.isFileOnPath("xdg-open")) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * For each platform, create a way to open a file with the filetypes
+   * default application.
+   *
+   */
+  openWithDefaultApp(file: string) {
+    switch (os.platform()) {
+      case "win32": {
+        spawnSync("start", [file]);
+        break;
+      }
+      case "darwin": {
+        spawnSync("open", [file]);
+        break;
+      }
+      case "linux": {
+        if (this.isXdgOpenAvailable()) {
+          spawnSync("xdg-open", [file]);
+        } else {
+          const errorMsg = "XDG-OPEN needs to be installed to launch embedded links.";
+
+          outputChannel.appendError(Utility.strBreak);
+
+          outputChannel.appendError(errorMsg);
+
+          outputChannel.appendError(Utility.strBreak);
+
+          // Popup some toast to alert to the error
+          window.showErrorMessage(errorMsg);
+
+          outputChannel.outputChannel.show();
+        }
+        break;
+      }
+    }
+  }
 
   /**
    * showErrorToolsNotFound - sends information if d2 isn't found
@@ -74,6 +122,12 @@ class Utility {
       util.showErrorToolsNotFound("");
     }
   }
+}
+
+export class VT {
+  public static Yellow = "\x1B[1;33m";
+  public static Green = "\x1B[1;32m";
+  public static Reset = "\x1B[0m";
 }
 
 export const util: Utility = new Utility();
